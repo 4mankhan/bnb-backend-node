@@ -7,7 +7,6 @@ import { getDateRange } from "../utils/getDateRange.js";
 import crypto from "crypto";
 import { redis } from "../config/redis.js";
 
-
 export const createBookingService = async ({
   userId,
   hotelId,
@@ -103,20 +102,27 @@ export const createBookingService = async ({
           //if alredy locked by someone elese
           const owner = await redis.get(key);
 
-          if (owner && owner !== userId) {
+          // locked by someone else
+          if (owner && owner !== userId.toString()) {
             throw new Error(`Room temporarily locked on ${date}`);
           }
 
-          const ok = await redis.set(key, userId, {
-            nx: true,
-            ex: 900,
-          });
+          // already my lock
+          if (owner === userId.toString()) {
+            continue;
+            //create new lock
+          } else {
+            const ok = await redis.set(key, userId.toString(), {
+              nx: true,
+              ex: 900,
+            });
 
-          if (!ok) {
-            throw new Error(`Room temporarily locked on ${date}`);
+            if (!ok) {
+              throw new Error(`Room temporarily locked on ${date}`);
+            }
+
+            lockedKeys.push(key);
           }
-
-          lockedKeys.push(key);
         }
 
         const base = room.basePrice;
@@ -200,7 +206,7 @@ export const createBookingService = async ({
     for (const key of lockedKeys) {
       const owner = await redis.get(key);
 
-      if (owner === userId) {
+      if (owner === userId.toString()) {
         await redis.del(key);
       }
     }

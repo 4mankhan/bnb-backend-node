@@ -23,10 +23,7 @@ const roomSchema = new mongoose.Schema(
     basePrice: { type: Number, required: true },
 
     amenities: [String],
-    photos: {
-      type: [String],
-      validate: [(arr) => arr.length <= 2, "Max 2 images allowed"],
-    },
+    photos: ["url1", "url2"],
 
     totalCount: { type: Number, required: true },
 

@@ -1,20 +1,27 @@
 import express from "express";
 import cors from "cors";
 
-import hotelRoutes from "./src/routes/hotel.routes.js";
+import errorHandler from "./src/middleware/errorHandler.js";
+
 import userRoutes from "./src/routes/user.routes.js";
+import hotelRoutes from "./src/routes/hotel.routes.js";
 import roomRoutes from "./src/routes/room.routes.js";
 import inventoryRoutes from "./src/routes/inventory.routes.js";
 import bookingRoutes from "./src/routes/booking.route.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import ownerRoutes from "./src/routes/owner.routes.js";
+import cloudinaryRoutes from "./src/routes/cloudinary/cloudinary.route.js";
+
 import { redis } from "./src/config/redis.js";
+
+import AppError from "./src/errors/AppError.js";
+
 import "./src/utils/booking.cron.js";
-import cloudinaryRoutes from "./src/routes/cloudinary/cloudinary.route.js"
 
 const app = express();
 
-// CORS
+// GLOBAL MIDDLEWARE
+
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
@@ -23,45 +30,60 @@ app.use(
   }),
 );
 
-// Middleware
 app.use(express.json());
 
-// Health check
-app.get("/airbnb", (req, res) => {
-  console.log("Airbnb Server is running");
-  res.send("The Server is running");
+// HEALTH CHECK ROUTES
+
+app.get("/health", (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Server is running",
+  });
 });
 
-//redis test
-app.get("/redis", async (req, res) => {
-  
-  try {
-    await redis.set("hello", "upstash redis server is running");
+//DEVELOPMENT / TEST ROUTES
 
-    const value = await redis.get("hello");
+if (process.env.NODE_ENV !== "production") {
+  app.get("/test/redis", async (req, res, next) => {
+    try {
+      await redis.set("hello", "upstash redis server is running");
 
-    return res.json({
-      success: true,
-      value,
-    });
-  } catch (err) {
-    console.error(err);
+      const value = await redis.get("hello");
 
-    return res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-});
+      return res.json({
+        success: true,
+        value,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+}
 
-// Routes
+// API ROUTES
+
 app.use("/auth", userRoutes);
+
 app.use("/hotels", hotelRoutes);
+
 app.use("/rooms", roomRoutes);
+
 app.use("/inventory", inventoryRoutes);
+
 app.use("/booking", bookingRoutes);
+
 app.use("/payment", paymentRoutes);
+
 app.use("/owner", ownerRoutes);
+
 app.use("/cloudinary", cloudinaryRoutes);
+
+//404 NOT FOUND
+app.use((req, res, next) => {
+  throw AppError.NotFoundError(`Route ${req.originalUrl} not found`);
+});
+
+//GLOBAL ERROR HANDLER
+app.use(errorHandler);
 
 export default app;

@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { handleExpiredBookings } from "../jobs/expireBooking.job.js";
+import { handleExpiredBookings } from "../jobs/expire.booking.job.js";
 
 let isRunning = false;
 

@@ -1,94 +1,99 @@
 import authService from "../services/user.service.js";
-import connectDB from "../db/connectDB.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../errors/AppError.js";
+import isValidObjectId from "../utils/isValidObjectId.js";
 
-// Signup
-const signup = async (req, res) => {
-  try {
-    await connectDB();
-
-    const user = await authService.signup(req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+const signup = asyncHandler(async (req, res) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    throw AppError.ValidationError("User data is required");
   }
-};
 
-// Login
-const login = async (req, res) => {
-  try {
-    await connectDB();
+  const user = await authService.signup(req.body);
 
-    const { email, password } = req.body;
+  return res.status(201).json({
+    success: true,
+    data: user,
+  });
+});
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: "Email and password are required",
-      });
-    }
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-    const data = await authService.login({ email, password });
-
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(err.statusCode || 500).json({
-      error: err.message || "Something went wrong",
-    });
+  if (!email || !password) {
+    throw AppError.ValidationError("Email and password are required");
   }
-};
 
-// Refresh Token
-const refresh = async (req, res) => {
-  try {
-    await connectDB();
+  const data = await authService.login({
+    email,
+    password,
+  });
 
-    const { refreshToken } = req.body;
-    const data = await authService.refresh(refreshToken);
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(401).json({ error: err.message });
+  return res.status(200).json({
+    success: true,
+    data,
+  });
+});
+
+const refresh = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    throw AppError.ValidationError("Refresh token is required");
   }
-};
 
-const getUserById = async (req, res) => {
-  try {
-    await connectDB();
+  const data = await authService.refresh(refreshToken);
 
-    const user = await authService.getUserById(req.user.id);
+  return res.status(200).json({
+    success: true,
+    data,
+  });
+});
 
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(404).json({
-      error: err.message || "User not found",
-    });
+const getUserById = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
   }
-};
-
-const updateUser = async (req, res) => {
-  try {
-    await connectDB();
-
-    const userId = req.user.id;
-    const { password, ...updateData } = req.body;
-
-    if (!password) {
-      return res.status(400).json({
-        error: "Password is required to update profile",
-      });
-    }
-
-    const updatedUser = await authService.updateUser(
-      userId,
-      password,
-      updateData
-    );
-
-    res.status(200).json(updatedUser);
-  } catch (err) {
-    res.status(err.statusCode || 500).json({
-      error: err.message || "Something went wrong",
-    });
+  if (!isValidObjectId(userId)) {
+    throw AppError.ValidationError("Invalid user id");
   }
-};
+  const user = await authService.getUserById(userId);
+
+  return res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  const { password, ...updateData } = req.body;
+
+  if (!password) {
+    throw AppError.ValidationError("Password is required to update profile");
+  }
+
+  if (!isValidObjectId(userId)) {
+    throw AppError.ValidationError("Invalid user id");
+  }
+
+  const updatedUser = await authService.updateUser(
+    userId,
+    password,
+    updateData,
+  );
+
+  return res.status(200).json({
+    success: true,
+    data: updatedUser,
+  });
+});
 
 export default {
   signup,

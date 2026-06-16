@@ -1,6 +1,6 @@
 import express from "express";
 import hotelController from "../controllers/hotel.controller.js";
-import authMiddleware, { requireRole } from "../utils/auth.js";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 

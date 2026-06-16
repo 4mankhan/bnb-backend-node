@@ -1,142 +1,209 @@
 import ownerService from "../services/owner.service.js";
 import connectDB from "../db/connectDB.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../errors/AppError.js";
+import isValidObjectId from "../utils/isValidObjectId.js";
 
-const createHotel = async (req, res) => {
-  try {
-    await connectDB();
+const createHotel = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
 
-    const hotel = await ownerService.createOwnerHotel(req.user.id, req.body);
-    res.status(201).json(hotel);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
   }
-};
 
-const getMyHotels = async (req, res) => {
-  try {
-    await connectDB();
-
-    const hotels = await ownerService.getOwnerHotels(req.user.id);
-    res.status(200).json(hotels);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!isValidObjectId(userId)) {
+    throw AppError.ValidationError("Invalid user id");
   }
-};
 
-const getMyHotelById = async (req, res) => {
-  try {
-    await connectDB();
+  const hotel = await ownerService.createOwnerHotel(userId, req.body);
 
-    const hotel = await ownerService.getOwnerHotelById(
-      req.user.id,
-      req.params.hotelId
-    );
-    res.status(200).json(hotel);
-  } catch (err) {
-    res.status(404).json({ error: err.message });
+  return res.status(201).json(hotel);
+});
+
+const getMyHotels = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
   }
-};
-const updateMyHotel = async (req, res) => {
-  try {
-    await connectDB();
 
-    const hotel = await ownerService.updateOwnerHotel(
-      req.user.id,
-      req.params.hotelId,
-      req.body
-    );
-
-    res.status(200).json({
-      success: true,
-      data: hotel,
-    });
-  } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+  if (!isValidObjectId(userId)) {
+    throw AppError.ValidationError("Invalid user id");
   }
-};
 
-const deleteMyHotel = async (req, res) => {
-  try {
-    await connectDB();
+  const hotels = await ownerService.getOwnerHotels(userId);
 
-    await ownerService.deleteOwnerHotel(req.user.id, req.params.hotelId);
-    res.status(204).send();
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  return res.status(200).json(hotels);
+});
+
+const getMyHotelById = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
   }
-};
 
-const activateMyHotel = async (req, res) => {
-  try {
-    await connectDB();
-
-    const hotel = await ownerService.activateOwnerHotel(
-      req.user.id,
-      req.params.hotelId
-    );
-    res.status(200).json(hotel);
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
   }
-};
 
-const createRoom = async (req, res) => {
-  try {
-    await connectDB();
-
-    const room = await ownerService.createRoomForOwnerHotel(
-      req.user.id,
-      req.params.hotelId,
-      req.body
-    );
-    res.status(201).json(room);
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
   }
-};
 
-const getRoomsByHotel = async (req, res) => {
-  try {
-    await connectDB();
+  const hotel = await ownerService.getOwnerHotelById(userId, hotelId);
 
-    const rooms = await ownerService.getOwnerRoomsByHotel(
-      req.user.id,
-      req.params.hotelId
-    );
-    res.status(200).json(rooms);
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  return res.status(200).json(hotel);
+});
+
+const updateMyHotel = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
   }
-};
 
-const updateRoom = async (req, res) => {
-  try {
-    await connectDB();
-
-    const room = await ownerService.updateOwnerRoom(
-      req.user.id,
-      req.params.roomId,
-      req.body
-    );
-    res.status(200).json(room);
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
   }
-};
-
-const deleteRoom = async (req, res) => {
-  try {
-    await connectDB();
-
-    await ownerService.deleteOwnerRoom(req.user.id, req.params.roomId);
-    res.status(204).send();
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
   }
-};
+
+  const hotel = await ownerService.updateOwnerHotel(userId, hotelId, req.body);
+
+  return res.status(200).json({
+    success: true,
+    data: hotel,
+  });
+});
+
+const deleteMyHotel = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
+  }
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  await ownerService.deleteOwnerHotel(userId, hotelId);
+
+  return res.status(204).send();
+});
+
+const activateMyHotel = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
+  }
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  const hotel = await ownerService.activateOwnerHotel(userId, hotelId);
+
+  return res.status(200).json(hotel);
+});
+
+const createRoom = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
+  }
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  const room = await ownerService.createRoomForOwnerHotel(
+    userId,
+    hotelId,
+    req.body,
+  );
+
+  return res.status(201).json(room);
+});
+
+const getRoomsByHotel = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { hotelId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
+  }
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  const rooms = await ownerService.getOwnerRoomsByHotel(userId, hotelId);
+
+  return res.status(200).json(rooms);
+});
+
+const updateRoom = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { roomId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!roomId) {
+    throw AppError.ValidationError("Room id is required");
+  }
+
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  const room = await ownerService.updateOwnerRoom(userId, roomId, req.body);
+
+  return res.status(200).json(room);
+});
+
+const deleteRoom = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+  const { roomId } = req.params;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  if (!roomId) {
+    throw AppError.ValidationError("Room id is required");
+  }
+  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid user or room id");
+  }
+
+  await ownerService.deleteOwnerRoom(userId, roomId);
+
+  return res.status(204).send();
+});
 
 export default {
   createHotel,

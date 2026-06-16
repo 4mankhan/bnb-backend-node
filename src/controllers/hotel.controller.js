@@ -1,59 +1,56 @@
 // controllers/hotelController.js
 import hotelService from "../services/hotel.service.js";
 import connectDB from "../db/connectDB.js";
+import AppError from "../errors/AppError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import isValidObjectId from "../utils/isValidObjectId.js";
 
-const browseHotels = async (req, res) => {
-  try {
-    await connectDB();
+const browseHotels = asyncHandler(async (req, res) => {
+  const { location, fromDate, toDate } = req.query;
 
-    const { location, fromDate, toDate } = req.query;
-
-    if (!location) {
-      return res.status(400).json({
-        error: "location, fromDate and toDate are required",
-      });
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-
-    const hotels = await hotelService.browseHotels({
-      city: location,
-      fromDate: fromDate || today,
-      toDate: toDate || today,
-    });
-
-    res.json(hotels);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!location) {
+    throw AppError.ValidationError("Location is required");
   }
-};
 
-const getHotelById = async (req, res) => {
-  try {
-    await connectDB();
+  const today = new Date().toISOString().split("T")[0];
 
-    const hotel = await hotelService.getHotelById(req.params.hotelId);
+  const hotels = await hotelService.browseHotels({
+    city: location,
+    fromDate: fromDate || today,
+    toDate: toDate || today,
+  });
 
-    res.json(hotel);
-  } catch (err) {
-    res.status(403).json({ error: err.message });
+  return res.status(200).json(hotels);
+});
+
+const getHotelById = asyncHandler(async (req, res) => {
+  const { hotelId } = req.params;
+
+  if (!hotelId) {
+    throw AppError.ValidationError("Hotel id is required");
   }
-};
 
-const getAllHotels = async (req, res) => {
-  try {
-    await connectDB();
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    const hotels = await hotelService.getAllHotels(page, limit);
-
-    res.status(200).json(hotels);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!isValidObjectId(hotelId)) {
+    throw AppError.ValidationError("Invalid Hotel Id");
   }
-};
+
+  const hotel = await hotelService.getHotelById(hotelId);
+
+  return res.status(200).json(hotel);
+});
+
+const getAllHotels = asyncHandler(async (req, res) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 10);
+
+  if (Number.isNaN(page) || Number.isNaN(limit) || page < 1 || limit < 1) {
+    throw AppError.ValidationError("Page and limit must be positive numbers");
+  }
+
+  const hotels = await hotelService.getAllHotels(page, limit);
+
+  return res.status(200).json(hotels);
+});
 
 export default {
   browseHotels,

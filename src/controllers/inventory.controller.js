@@ -1,84 +1,102 @@
 // src/controllers/inventory.controller.js
 
+import AppError from "../errors/AppError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+
 import {
   getRoomAvailabilityService,
   getInventoryCalendarService,
   updateSurgeFactorService,
   updateRoomAvailabilityService,
 } from "../services/inventory.service.js";
+import isValidObjectId from "../utils/isValidObjectId.js";
 
-// -----------------------------------
-// Get room availability for booking UI
-// -----------------------------------
-export const getRoomAvailabilityController = async (req, res, next) => {
-  try {
-    const { roomId, fromDate, toDate } = req.query;
+export const getRoomAvailabilityController = asyncHandler(async (req, res) => {
+  const { roomId, fromDate, toDate } = req.query;
 
-    const data = await getRoomAvailabilityService({
-      roomId,
-      fromDate,
-      toDate,
-    });
-
-    return res.status(200).json({
-      success: true,
-      data,
-    });
-  } catch (err) {
-    next(err);
+  if (!roomId || !fromDate || !toDate) {
+    throw AppError.ValidationError(
+      "Room id, from date and to date are required",
+    );
   }
-};
 
-// -----------------------------------
-// Get inventory calendar (owner)
-// -----------------------------------
-export const getInventoryCalendarController = async (req, res, next) => {
-  try {
-    const { roomId } = req.params;
-
-    const data = await getInventoryCalendarService({
-      roomId,
-    });
-
-    return res.status(200).json({
-      success: true,
-      data,
-    });
-  } catch (err) {
-    next(err);
+  if (!isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid room id");
   }
-};
 
-// -----------------------------------
-// Update surge factor
-// -----------------------------------
-export const updateSurgeFactorController = async (req, res, next) => {
-  try {
-    const { roomId, fromDate, toDate, surgeFactor } = req.body;
+  const data = await getRoomAvailabilityService({
+    roomId,
+    fromDate,
+    toDate,
+  });
 
-    const data = await updateSurgeFactorService({
-      roomId,
-      fromDate,
-      toDate,
-      surgeFactor,
-    });
+  return res.status(200).json({
+    success: true,
+    data,
+  });
+});
 
-    return res.status(200).json({
-      success: true,
-      message: "Surge factor updated successfully",
-      data,
-    });
-  } catch (err) {
-    next(err);
+export const getInventoryCalendarController = asyncHandler(async (req, res) => {
+  const { roomId } = req.params;
+
+  if (!roomId) {
+    throw AppError.ValidationError("Room id is required");
   }
-};
 
-// -----------------------------------
-// Open / Close room inventory
-// -----------------------------------
-export const updateRoomAvailabilityController = async (req, res, next) => {
-  try {
+  if (!isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid room id");
+  }
+
+  const data = await getInventoryCalendarService({
+    roomId,
+  });
+
+  return res.status(200).json({
+    success: true,
+    data,
+  });
+});
+
+export const updateSurgeFactorController = asyncHandler(async (req, res) => {
+  const { roomId, fromDate, toDate, surgeFactor } = req.body;
+
+  if (!roomId || !fromDate || !toDate || surgeFactor == null) {
+    throw AppError.ValidationError(
+      "Room id, dates and surge factor are required",
+    );
+  }
+
+  if (!isValidObjectId(roomId)) {
+    throw AppError.ValidationError("Invalid room id");
+  }
+
+  const data = await updateSurgeFactorService({
+    roomId,
+    fromDate,
+    toDate,
+    surgeFactor,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Surge factor updated successfully",
+    data,
+  });
+});
+
+export const updateRoomAvailabilityController = asyncHandler(
+  async (req, res) => {
     const { roomId, fromDate, toDate, closed } = req.body;
+
+    if (!roomId || !fromDate || !toDate || closed == null) {
+      throw AppError.ValidationError(
+        "Room id, dates and availability status are required",
+      );
+    }
+
+    if (!isValidObjectId(roomId)) {
+      throw AppError.ValidationError("Invalid room id");
+    }
 
     const data = await updateRoomAvailabilityService({
       roomId,
@@ -92,7 +110,12 @@ export const updateRoomAvailabilityController = async (req, res, next) => {
       message: "Room availability updated successfully",
       data,
     });
-  } catch (err) {
-    next(err);
-  }
+  },
+);
+
+export default {
+  getRoomAvailabilityController,
+  getInventoryCalendarController,
+  updateRoomAvailabilityController,
+  updateSurgeFactorController,
 };

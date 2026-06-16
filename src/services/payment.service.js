@@ -167,23 +167,3 @@ export const processPaymentService = async ({
   }
 };
 
-export const updateSurgeFactorService = async ({
-  roomId,
-  fromDate,
-  toDate,
-  surgeFactor,
-}) => {
-  const dates = getDateRange(fromDate, toDate);
-
-  const result = await Inventory.updateMany(
-    {
-      roomId,
-      date: { $in: dates },
-    },
-    {
-      $set: { surgeFactor },
-    },
-  );
-
-  return result;
-};

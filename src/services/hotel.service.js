@@ -12,7 +12,7 @@ const browseHotels = async ({ city, fromDate, toDate }) => {
     active: true,
   });
 
-  // ⚠️ Future: filter based on availability using bookings collection
+  //  Future: filter based on availability using bookings collection
 
   return hotels;
 };
@@ -33,6 +33,7 @@ const getHotelById = async (hotelId) => {
 
 //Get All Hotels (Admin)
 const getAllHotels = async (page, limit) => {
+  
   const skip = (page - 1) * limit;
 
   return await Hotel.find()

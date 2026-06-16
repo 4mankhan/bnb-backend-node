@@ -8,20 +8,21 @@ import {
   cancelBookingController,
 } from "../controllers/booking.controller.js";
 
-import authMiddleware from "../utils/auth.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import requireRole from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
 // Create booking (PENDING + inventory block)
-router.post("/create", authMiddleware, createBookingController);
+router.post("/create", authMiddleware, requireRole("user"), createBookingController);
 
 // Get all bookings of logged-in user
-router.get("/my-bookings",authMiddleware , getUserBookingsController);
+router.get("/bookings", authMiddleware, requireRole("user","owner"), getUserBookingsController);
 
 // Get single booking
-router.get("/:id", authMiddleware, getBookingByIdController);
+router.get("/:id", authMiddleware, requireRole("user"), getBookingByIdController);
 
 // Cancel booking (optional)
-router.patch("/cancel/:id", authMiddleware,cancelBookingController);
+router.patch("/:id/cancel", authMiddleware, requireRole("user","owner"), cancelBookingController);
 
 export default router;

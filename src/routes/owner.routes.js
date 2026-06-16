@@ -1,10 +1,11 @@
 import express from "express";
 import ownerController from "../controllers/owner.controller.js";
-import authMiddleware, { requireRole } from "../utils/auth.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import requireRole from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
-router.use(authMiddleware, requireRole("owner"));
+router.use(authMiddleware, requireRole("owner"));//run for all routes below
 
 // Owner Hotels
 router.post("/hotels", ownerController.createHotel);

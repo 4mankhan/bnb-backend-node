@@ -1,3 +1,8 @@
+// Class-based approach: use `new` to create instances of specific error classes
+// Class-based approach: each error type has its own class,
+// so you create an instance with `new`.
+// (e.g., `new ValidationError()`), which enables `instanceof` checks.
+
 import AppError from "./AppError.js";
 
 class ValidationError extends AppError {

@@ -11,6 +11,7 @@ import bookingRoutes from "./src/routes/booking.route.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import ownerRoutes from "./src/routes/owner.routes.js";
 import cloudinaryRoutes from "./src/routes/cloudinary/cloudinary.route.js";
+import razorpayRoutes from "./src/routes/razorpay/razorpay.routes.js"
 
 import { redis } from "./src/config/redis.js";
 
@@ -77,6 +78,8 @@ app.use("/payment", paymentRoutes);
 app.use("/owner", ownerRoutes);
 
 app.use("/cloudinary", cloudinaryRoutes);
+
+app.use("/razorpay", razorpayRoutes);
 
 //404 NOT FOUND
 app.use((req, res, next) => {

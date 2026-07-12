@@ -32,7 +32,7 @@ const getRoomsByHotel = asyncHandler(async (req, res) => {
     throw AppError.ValidationError("Hotel id is required");
   }
 
-  if (!isValidObjectId(roomId)) {
+  if (!isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid room id");
   }
 

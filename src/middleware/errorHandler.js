@@ -28,6 +28,13 @@ const errorHandler = (err, req, res, next) => {
     }
   }
 
+/**
+ * Handle errors originating from external libraries/frameworks.
+ *
+ * These are NOT AppError instances. They are thrown by Mongoose or MongoDB
+ * and are translated into our application's standardized error response.
+ */
+
   if (err.name === "CastError") {
     return res.status(400).json({
       success: false,

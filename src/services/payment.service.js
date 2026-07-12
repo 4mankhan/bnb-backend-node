@@ -5,7 +5,7 @@ import Booking from "../db/models/booking.js";
 import Payment from "../db/models/payment.js";
 import Inventory from "../db/models/inventory.js";
 import { getDateRange } from "../utils/getDateRange.js";
-import { redis } from "../config/redis.js";
+import { valKey as redis } from "../config/redis.js";
 
 
 export const processPaymentService = async ({

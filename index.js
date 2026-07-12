@@ -12,8 +12,7 @@ import paymentRoutes from "./src/routes/payment.routes.js";
 import ownerRoutes from "./src/routes/owner.routes.js";
 import cloudinaryRoutes from "./src/routes/cloudinary/cloudinary.route.js";
 import razorpayRoutes from "./src/routes/razorpay/razorpay.routes.js"
-
-import { redis } from "./src/config/redis.js";
+import { valKey as redis } from "./src/config/redis.js";
 
 import AppError from "./src/errors/AppError.js";
 
@@ -33,6 +32,10 @@ app.use(
 
 app.use(express.json());
 
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end();
+});
+
 // HEALTH CHECK ROUTES
 
 app.get("/health", (req, res) => {
@@ -47,7 +50,7 @@ app.get("/health", (req, res) => {
 if (process.env.NODE_ENV !== "production") {
   app.get("/test/redis", async (req, res, next) => {
     try {
-      await redis.set("hello", "upstash redis server is running");
+      await redis.set("hello", "Valkey server is running");
 
       const value = await redis.get("hello");
 

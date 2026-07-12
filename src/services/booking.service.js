@@ -5,7 +5,7 @@ import Inventory from "../db/models/inventory.js";
 import Room from "../db/models/rooms.js";
 import { getDateRange } from "../utils/getDateRange.js";
 import crypto from "crypto";
-import { redis } from "../config/redis.js";
+import { valKey as redis } from "../config/redis.js";
 
 export const createBookingService = async ({
   userId,

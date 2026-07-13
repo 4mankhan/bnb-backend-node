@@ -47,7 +47,6 @@ app.get("/health", (req, res) => {
 
 //DEVELOPMENT / TEST ROUTES
 
-if (process.env.NODE_ENV !== "production") {
   app.get("/test/redis", async (req, res, next) => {
     try {
       await redis.set("hello", "Valkey server is running");
@@ -62,7 +61,7 @@ if (process.env.NODE_ENV !== "production") {
       next(err);
     }
   });
-}
+
 
 // API ROUTES
 

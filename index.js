@@ -2,18 +2,8 @@ import express from "express";
 import cors from "cors";
 
 import errorHandler from "./src/middleware/errorHandler.js";
-
-import userRoutes from "./src/routes/user.routes.js";
-import hotelRoutes from "./src/routes/hotel.routes.js";
-import roomRoutes from "./src/routes/room.routes.js";
-import inventoryRoutes from "./src/routes/inventory.routes.js";
-import bookingRoutes from "./src/routes/booking.route.js";
-import paymentRoutes from "./src/routes/payment.routes.js";
-import ownerRoutes from "./src/routes/owner.routes.js";
-import cloudinaryRoutes from "./src/routes/cloudinary/cloudinary.route.js";
-import razorpayRoutes from "./src/routes/razorpay/razorpay.routes.js";
+import apiRoutes from "./src/routes/index.routes.js";
 import { valKey as redis } from "./src/config/redis.js";
-
 import AppError from "./src/errors/AppError.js";
 
 import "./src/utils/booking.cron.js";
@@ -59,24 +49,7 @@ app.get("/test/redis", async (req, res, next) => {
 });
 
 // API ROUTES
-
-app.use("/auth", userRoutes);
-
-app.use("/hotels", hotelRoutes);
-
-app.use("/rooms", roomRoutes);
-
-app.use("/inventory", inventoryRoutes);
-
-app.use("/booking", bookingRoutes);
-
-app.use("/payment", paymentRoutes);
-
-app.use("/owner", ownerRoutes);
-
-app.use("/cloudinary", cloudinaryRoutes);
-
-app.use("/razorpay", razorpayRoutes);
+app.use("/api/v1", apiRoutes);
 
 //404 NOT FOUND
 app.use((req, res, next) => {

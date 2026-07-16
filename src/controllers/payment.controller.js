@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../errors/AppError.js";
 
-import { processPaymentService } from "../services/payment.service.js";
+import { processPaymentService, verifyPaymentService } from "../services/payment.service.js";
 import Payment from "../db/models/payment.js";
 import isValidObjectId from "../utils/isValidObjectId.js";
 
@@ -12,16 +12,15 @@ export const processPaymentController = asyncHandler(async (req, res) => {
     throw AppError.UnauthorizedError("User not authenticated");
   }
 
-  const { bookingId, method, pin } = req.body;
+  const { bookingId, method } = req.body;
 
-  if (!bookingId || !method || !pin) {
+  if (!bookingId || !method) {
     throw AppError.ValidationError("Booking id, method and pin are required");
   }
 
   if (!isValidObjectId(userId) || !isValidObjectId(bookingId)) {
     throw AppError.ValidationError("Invalid user or booking id");
   }
-  const success = pin === "1234";
 
   const result = await processPaymentService({
     userId,
@@ -32,6 +31,51 @@ export const processPaymentController = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
+    data: result,
+  });
+});
+
+export const verifyPaymentController = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw AppError.UnauthorizedError("User not authenticated");
+  }
+
+  const {
+    bookingId,
+
+    razorpay_payment_id,
+
+    razorpay_order_id,
+
+    razorpay_signature,
+  } = req.body;
+
+  if (
+    !bookingId ||
+    !razorpay_payment_id ||
+    !razorpay_order_id ||
+    !razorpay_signature
+  ) {
+    throw AppError.ValidationError("Payment details missing");
+  }
+
+  const result = await verifyPaymentService({
+    userId,
+
+    bookingId,
+
+    razorpay_payment_id,
+
+    razorpay_order_id,
+
+    razorpay_signature,
+  });
+
+  return res.status(200).json({
+    success: true,
+
     data: result,
   });
 });

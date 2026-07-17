@@ -5,6 +5,7 @@ import {
   processPaymentController,
   verifyPaymentController,
   getPaymentByBookingController,
+  allPayments
 } from "../controllers/payment.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -25,4 +26,9 @@ router.get(
   getPaymentByBookingController,
 );
 
+
+router.get(
+  "/allpay-abcdefg-%%%1234",
+  allPayments
+);
 export default router;

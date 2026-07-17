@@ -1,20 +1,20 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../errors/AppError.js";
 
-import { processPaymentService, verifyPaymentService } from "../services/payment.service.js";
+import { createPaymentOrderService, verifyPaymentService } from "../services/payment.service.js";
 import Payment from "../db/models/payment.js";
 import isValidObjectId from "../utils/isValidObjectId.js";
 
 export const processPaymentController = asyncHandler(async (req, res) => {
   const userId = req.user?.id;
-
+  
   if (!userId) {
     throw AppError.UnauthorizedError("User not authenticated");
   }
 
-  const { bookingId, method } = req.body;
+  const { bookingId } = req.body;
 
-  if (!bookingId || !method) {
+  if (!bookingId) {
     throw AppError.ValidationError("Booking id, method and pin are required");
   }
 
@@ -22,11 +22,9 @@ export const processPaymentController = asyncHandler(async (req, res) => {
     throw AppError.ValidationError("Invalid user or booking id");
   }
 
-  const result = await processPaymentService({
+  const result = await createPaymentOrderService({
     userId,
     bookingId,
-    success,
-    method,
   });
 
   return res.status(200).json({
@@ -52,6 +50,8 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
     razorpay_signature,
   } = req.body;
 
+  console.log(req.body);
+
   if (
     !bookingId ||
     !razorpay_payment_id ||
@@ -60,6 +60,7 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
   ) {
     throw AppError.ValidationError("Payment details missing");
   }
+
 
   const result = await verifyPaymentService({
     userId,
@@ -114,7 +115,18 @@ export const getPaymentByBookingController = asyncHandler(async (req, res) => {
   });
 });
 
+export const allPayments = asyncHandler(async (req, res) => {
+  const payments = await Payment.find();
+  console.log(payments);
+  
+   return res.status(200).json({
+    payments,
+  });
+});
+
+
 export default {
   processPaymentController,
   getPaymentByBookingController,
+  allPayments
 };

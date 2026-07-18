@@ -50,7 +50,6 @@ export const verifyPaymentController = asyncHandler(async (req, res) => {
     razorpay_signature,
   } = req.body;
 
-  console.log(req.body);
 
   if (
     !bookingId ||
@@ -117,7 +116,6 @@ export const getPaymentByBookingController = asyncHandler(async (req, res) => {
 
 export const allPayments = asyncHandler(async (req, res) => {
   const payments = await Payment.find();
-  console.log(payments);
   
    return res.status(200).json({
     payments,

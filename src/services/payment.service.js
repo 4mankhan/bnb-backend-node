@@ -119,8 +119,9 @@ export const verifyPaymentService = async ({
 
       const payment = await Payment.findOne({
         bookingId,
-        razorpay_order_id,
+        razorpayOrderId: razorpay_order_id,
       }).session(session);
+
 
       if (!payment) {
         throw new Error("Payment record not found");
@@ -136,7 +137,7 @@ export const verifyPaymentService = async ({
       // Verify signature
 
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_SECRET_KEY)
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest("hex");
 

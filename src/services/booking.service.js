@@ -109,9 +109,9 @@ export const createBookingService = async ({
           throw new Error(`Room closed on ${normalize(date)}`);
         }
 
-        // Inventory only stores bookedCount for this date. 
+        // Inventory only stores bookedCount for this date.
         const bookedCount = inventory.bookedCount ?? 0;
-        
+
         const available = totalRoomCount - bookedCount;
 
         if (available <= 0) {
@@ -132,11 +132,8 @@ export const createBookingService = async ({
 
           // create lock if not mine
           if (!owner) {
-            const ok = await redis.set(key, userId.toString(), {
-              nx: true,
-              ex: 900,
-            });
-
+            const ok = await redis.set(key, userId.toString(), "NX", "EX", 900);
+            
             if (!ok) {
               throw new Error(`Room temporarily locked on ${normalize(date)}`);
             }

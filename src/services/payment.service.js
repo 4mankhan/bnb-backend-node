@@ -8,27 +8,28 @@ import { getDateRange } from "../utils/getDateRange.js";
 import { valKey as redis } from "../config/redis.js";
 import crypto from "crypto";
 import razorpay from "../config/razorpay.js";
+import AppError from "../errors/AppError.js";
 
 export const createPaymentOrderService = async ({ userId, bookingId }) => {
   const booking = await Booking.findById(bookingId);
 
   if (!booking) {
-    throw new Error("Booking not found");
+    throw AppError.NotFoundError("Booking not found");
   }
 
   if (booking.user.toString() !== userId.toString()) {
-    throw new Error("Unauthorized booking");
+    throw AppError.UnauthorizedError("Unauthorized booking");
   }
 
   if (booking.status !== "PENDING") {
-    throw new Error("Booking cannot be paid");
+    throw AppError.BadRequestError("Booking cannot be paid");
   }
 
   if (booking.expiresAt < new Date()) {
     booking.status = "EXPIRED";
     await booking.save();
 
-    throw new Error("Booking expired");
+    throw AppError.ForbiddenError("Booking expired");
   }
 
   // Reuse existing pending payment if present

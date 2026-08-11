@@ -48,7 +48,7 @@ const getMyHotelById = asyncHandler(async (req, res) => {
     throw AppError.ValidationError("Hotel id is required");
   }
 
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 
@@ -68,7 +68,7 @@ const updateMyHotel = asyncHandler(async (req, res) => {
   if (!hotelId) {
     throw AppError.ValidationError("Hotel id is required");
   }
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 
@@ -91,7 +91,7 @@ const deleteMyHotel = asyncHandler(async (req, res) => {
   if (!hotelId) {
     throw AppError.ValidationError("Hotel id is required");
   }
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 
@@ -111,7 +111,7 @@ const activateMyHotel = asyncHandler(async (req, res) => {
   if (!hotelId) {
     throw AppError.ValidationError("Hotel id is required");
   }
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 
@@ -131,7 +131,7 @@ const createRoom = asyncHandler(async (req, res) => {
   if (!hotelId) {
     throw AppError.ValidationError("Hotel id is required");
   }
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 
@@ -155,7 +155,7 @@ const getRoomsByHotel = asyncHandler(async (req, res) => {
   if (!hotelId) {
     throw AppError.ValidationError("Hotel id is required");
   }
-  if (!isValidObjectId(userId) || !isValidObjectId(roomId)) {
+  if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid user or room id");
   }
 

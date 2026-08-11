@@ -108,10 +108,25 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
+const logout = asyncHandler(async (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
 export default {
   signup,
   login,
   refresh,
   getUserById,
   updateUser,
+  logout,
 };

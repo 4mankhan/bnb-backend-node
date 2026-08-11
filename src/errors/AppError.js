@@ -1,9 +1,14 @@
 //extending base class Error
 class AppError extends Error {
-  constructor(message, statusCode = 500, details = null) {
+  constructor(
+    message,
+    statusCode = 500,
+    details = null,
+    errorType = "InternalServerError"
+  ) {
     super(message);
 
-    this.name = this.constructor.name;
+    this.name = errorType;
     this.statusCode = statusCode;
     this.details = details;
     this.isOperational = true;
@@ -11,13 +16,17 @@ class AppError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 
-  //custom methods or each error type
   static ValidationError(
     message = "Validation failed",
     statusCode = 400,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "ValidationError"
+    );
   }
 
   static BadRequestError(
@@ -25,7 +34,12 @@ class AppError extends Error {
     statusCode = 400,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "BadRequestError"
+    );
   }
 
   static UnauthorizedError(
@@ -33,7 +47,12 @@ class AppError extends Error {
     statusCode = 401,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "UnauthorizedError"
+    );
   }
 
   static ForbiddenError(
@@ -41,7 +60,12 @@ class AppError extends Error {
     statusCode = 403,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "ForbiddenError"
+    );
   }
 
   static NotFoundError(
@@ -49,7 +73,12 @@ class AppError extends Error {
     statusCode = 404,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "NotFoundError"
+    );
   }
 
   static ConflictError(
@@ -57,7 +86,12 @@ class AppError extends Error {
     statusCode = 409,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "ConflictError"
+    );
   }
 
   static UnprocessableEntityError(
@@ -65,7 +99,12 @@ class AppError extends Error {
     statusCode = 422,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "UnprocessableEntityError"
+    );
   }
 
   static TooManyRequestsError(
@@ -73,7 +112,12 @@ class AppError extends Error {
     statusCode = 429,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "TooManyRequestsError"
+    );
   }
 
   static ServiceUnavailableError(
@@ -81,7 +125,12 @@ class AppError extends Error {
     statusCode = 503,
     details = null
   ) {
-    return new AppError(message, statusCode, details);
+    return new AppError(
+      message,
+      statusCode,
+      details,
+      "ServiceUnavailableError"
+    );
   }
 }
 

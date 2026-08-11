@@ -5,6 +5,7 @@ import Inventory from "../db/models/inventory.js";
 import Room from "../db/models/rooms.js";
 import { getDateRange } from "../utils/getDateRange.js";
 import { valKey as redis } from "../config/redis.js";
+import AppError from "../errors/AppError.js";
 
 export const createBookingService = async ({
   userId,
@@ -133,7 +134,7 @@ export const createBookingService = async ({
           // create lock if not mine
           if (!owner) {
             const ok = await redis.set(key, userId.toString(), "NX", "EX", 900);
-            
+
             if (!ok) {
               throw new Error(`Room temporarily locked on ${normalize(date)}`);
             }
@@ -154,7 +155,9 @@ export const createBookingService = async ({
           }),
         );
 
-        throw new Error(`Room unavailable on ${formattedDates.join(", ")}`);
+          throw AppError.ConflictError(
+    `Room unavailable on ${formattedDates.join(", ")}`
+  );
       }
 
       // ---------------------------------
@@ -263,7 +266,7 @@ export const createBookingService = async ({
         await redis.del(key);
       }
     }
-
+    console.log("errrr",err);
     throw err;
   } finally {
     await session.endSession();

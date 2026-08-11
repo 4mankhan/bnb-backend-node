@@ -25,12 +25,6 @@ const inventorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
-    totalCount: {
-      type: Number,
-      required: true,
-    },
-
     surgeFactor: {
       type: Number,
       default: 1,
@@ -45,7 +39,7 @@ const inventorySchema = new mongoose.Schema(
 );
 
 
-// 🔥 VERY IMPORTANT (prevents duplicate entries per day)
+// VERY IMPORTANT (prevents duplicate entries per day)
 inventorySchema.index({ roomId: 1, date: 1 }, { unique: true });
 
 const Inventory = mongoose.model("Inventory", inventorySchema);

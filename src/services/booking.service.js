@@ -75,6 +75,12 @@ export const createBookingService = async ({
           date,
         }).session(session);
 
+        const room = await Room.findById(roomId).session(session);
+        if (!room) {
+          throw new Error("Room not found");
+        }
+        const totalRoomCount = room.totalCount;
+
         // create inventory if missing
         if (!inventory) {
           inventory = await Inventory.findOneAndUpdate(
@@ -103,7 +109,10 @@ export const createBookingService = async ({
           throw new Error(`Room closed on ${normalize(date)}`);
         }
 
-        const available = inventory.totalCount - inventory.bookedCount;
+        // Inventory only stores bookedCount for this date. 
+        const bookedCount = inventory.bookedCount ?? 0;
+        
+        const available = totalRoomCount - bookedCount;
 
         if (available <= 0) {
           unavailableDates.push(normalize(date));

@@ -6,6 +6,7 @@ import Payment from "../db/models/payment.js";
 import Inventory from "../db/models/inventory.js";
 import Room from "../db/models/rooms.js";
 import { getDateRange } from "../utils/getDateRange.js";
+import AppError from "../errors/AppError.js";
 
 // -----------------------------------
 // Get room availability for booking UI
@@ -15,18 +16,16 @@ export const getRoomAvailabilityService = async ({
   fromDate,
   toDate,
 }) => {
-  if (!roomId || !fromDate || !toDate) {
-    throw new Error("roomId, fromDate and toDate are required");
-  }
-
   const dates = getDateRange(fromDate, toDate);
 
+  // Get the room to retrieve the actual total room count
   const room = await Room.findById(roomId);
 
   if (!room) {
-    throw new Error("Room not found");
+    throw AppError.ForbiddenError("Room not found");
   }
 
+  // Get inventory records only for date-specific information
   const inventoryList = await Inventory.find({
     roomId,
     date: {
@@ -34,34 +33,47 @@ export const getRoomAvailabilityService = async ({
     },
   });
 
+  // Map inventory by date for quick lookup
   const inventoryMap = new Map();
 
   for (const inventory of inventoryList) {
-    const dateKey = new Date(inventory.date).toISOString().split("T")[0];
+    const dateKey = new Date(inventory.date)
+      .toISOString()
+      .split("T")[0];
 
     inventoryMap.set(dateKey, inventory);
   }
 
   const availabilityPerDate = [];
 
+  // Room.totalCount is the source of truth
+  const totalCount = room.totalCount;
+
   let minimumAvailable = Infinity;
 
   for (const date of dates) {
-    const dateKey = new Date(date).toISOString().split("T")[0];
+    const dateKey = new Date(date)
+      .toISOString()
+      .split("T")[0];
 
     const inventory = inventoryMap.get(dateKey);
 
-    const totalCount = inventory?.totalCount ?? room.totalCount;
-
+    // Inventory only controls date-specific information
     const bookedCount = inventory?.bookedCount ?? 0;
 
     const surgeFactor = inventory?.surgeFactor ?? 1;
 
     const closed = inventory?.closed ?? false;
 
-    const available = closed ? 0 : totalCount - bookedCount;
+    // Calculate availability using Room.totalCount
+    const available = closed
+      ? 0
+      : Math.max(0, totalCount - bookedCount);
 
-    minimumAvailable = Math.min(minimumAvailable, available);
+    minimumAvailable = Math.min(
+      minimumAvailable,
+      available
+    );
 
     availabilityPerDate.push({
       date,
@@ -79,6 +91,10 @@ export const getRoomAvailabilityService = async ({
     dates: availabilityPerDate,
   };
 };
+
+
+
+
 
 // -----------------------------------
 // Get inventory calendar (owner)

@@ -112,7 +112,6 @@ export const getInventoryCalendarService = async ({ roomId }) => {
 
   const formatted = inventory.map((item) => ({
     date: item.date,
-    totalRooms: item.totalCount,
     bookedRooms: item.bookedCount,
     availableRooms: item.totalCount - item.bookedCount,
     surgeFactor: item.surgeFactor,

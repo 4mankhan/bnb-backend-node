@@ -1,8 +1,11 @@
 import Hotel from "../db/models/hotels.js";
 import Room from "../db/models/rooms.js";
 import Inventory from "../db/models/inventory.js";
+import Booking from "../db/models/booking.js";
 import hotelService from "./hotel.service.js";
 import deleteUnusedCloudinaryImages from "../utils/deleteCloudinaryImages.js";
+import mongoose from "mongoose";
+import { transformDailyAnalytics } from "../utils/analytics.js";
 
 const createOwnerHotel = async (ownerId, data) => {
   return Hotel.create({
@@ -102,6 +105,86 @@ const deleteOwnerRoom = async (ownerId, roomId) => {
   await Room.findByIdAndDelete(roomId);
 };
 
+export const getHotelAnalyticsService = async (hotelId) => {
+  const hotel = await Hotel.findById(hotelId).select("name city photos").lean();
+
+  const rooms = await Room.find({
+    hotelId,
+  })
+    .select("type basePrice photos totalCount")
+    .lean();
+
+  const totalRooms = rooms.reduce(
+    (sum, room) => sum + Number(room.totalCount || 0),
+    0,
+  );
+
+  const bookings = await Booking.find({
+    hotel: hotelId,
+
+    status: "CONFIRMED",
+  })
+    .select("room fromDate toDate totalPrice")
+    .lean();
+
+  const daily = transformDailyAnalytics(bookings, totalRooms);
+
+  const totalRevenue = daily.reduce((sum, item) => sum + item.revenue, 0);
+
+  const totalBooked = daily.reduce((sum, item) => sum + item.bookedRooms, 0);
+
+  const totalRoomNights = daily.length * totalRooms;
+
+  const occupancy = totalRoomNights ? (totalBooked / totalRoomNights) * 100 : 0;
+
+  const averageRoomPrice = totalBooked ? totalRevenue / totalBooked : 0;
+
+  const revPAR = totalRoomNights ? totalRevenue / totalRoomNights : 0;
+
+  const activeDays = daily.filter((item) => !item.closed);
+
+  const weakDays = [...activeDays]
+    .sort((a, b) => a.occupancy - b.occupancy)
+    .slice(0, 5);
+
+  const bestDays = [...activeDays]
+    .sort((a, b) => b.occupancy - a.occupancy)
+    .slice(0, 5);
+
+  return {
+    hotel,
+
+    rooms,
+
+    summary: {
+      totalRevenue,
+
+      estimatedRevenue: totalRevenue,
+
+      totalBookings: bookings.length,
+
+      totalBooked,
+
+      totalRooms,
+
+      totalRoomNights,
+
+      occupancy,
+
+      averageRoomPrice,
+
+      revPAR,
+    },
+
+    daily,
+
+    weakDays,
+
+    bestDays,
+  };
+};
+
+
 export default {
   createOwnerHotel,
   getOwnerHotels,
@@ -113,4 +196,5 @@ export default {
   getOwnerRoomsByHotel,
   updateOwnerRoom,
   deleteOwnerRoom,
+  getHotelAnalyticsService,
 };

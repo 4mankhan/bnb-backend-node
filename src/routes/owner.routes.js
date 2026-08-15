@@ -21,4 +21,7 @@ router.get("/hotels/:hotelId/rooms", ownerController.getRoomsByHotel);
 router.put("/rooms/:roomId", ownerController.updateRoom);
 router.delete("/rooms/:roomId", ownerController.deleteRoom);
 
+//analytics
+router.get("/hotel/:hotelId/analytics", ownerController.getHotelAnalyticsController)
+
 export default router;

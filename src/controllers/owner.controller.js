@@ -205,6 +205,23 @@ const deleteRoom = asyncHandler(async (req, res) => {
   return res.status(204).send();
 });
 
+export const getHotelAnalyticsController = asyncHandler(async (req, res) => {
+  console.log("running analytics")
+  const { hotelId } = req.params;
+
+  if (!isValidObjectId(hotelId)) {
+    throw AppError.ValidationError("Invalid hotel id");
+  }
+
+  const analytics = await ownerService.getHotelAnalyticsService(hotelId);
+
+  res.json({
+    success: true,
+
+    analytics,
+  });
+});
+
 export default {
   createHotel,
   getMyHotels,
@@ -216,4 +233,5 @@ export default {
   getRoomsByHotel,
   updateRoom,
   deleteRoom,
+  getHotelAnalyticsController
 };

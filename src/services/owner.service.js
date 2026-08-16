@@ -147,7 +147,6 @@ const round = (value, decimals = 2) => {
 };
 
 export const getHotelAnalyticsService = async (hotelId, from, to) => {
- 
   console.log("SERVICE INPUT", {
     hotelId,
     from,
@@ -159,9 +158,7 @@ export const getHotelAnalyticsService = async (hotelId, from, to) => {
   /* ---------------------------------------------------------------------- */
 
   if (!mongoose.isValidObjectId(hotelId)) {
-    throw AppError.ValidationError(
-      "Invalid hotel id"
-    );
+    throw AppError.ValidationError("Invalid hotel id");
   }
 
   /* ---------------------------------------------------------------------- */
@@ -169,9 +166,7 @@ export const getHotelAnalyticsService = async (hotelId, from, to) => {
   /* ---------------------------------------------------------------------- */
 
   if (!from || !to) {
-    throw AppError.ValidationError(
-      "Analytics from and to dates are required"
-    );
+    throw AppError.ValidationError("Analytics from and to dates are required");
   }
 
   const fromDate = parseStartDate(from);
@@ -183,34 +178,26 @@ export const getHotelAnalyticsService = async (hotelId, from, to) => {
   });
 
   if (fromDate > toDate) {
-    throw AppError.ValidationError(
-      "from date cannot be greater than to date"
-    );
+    throw AppError.ValidationError("from date cannot be greater than to date");
   }
 
   /* ---------------------------------------------------------------------- */
   /* Create ObjectId                                                        */
   /* ---------------------------------------------------------------------- */
 
-  const hotelObjectId =
-    new mongoose.Types.ObjectId(hotelId);
+  const hotelObjectId = new mongoose.Types.ObjectId(hotelId);
 
   /* ---------------------------------------------------------------------- */
   /* Fetch hotel                                                            */
   /* ---------------------------------------------------------------------- */
 
-  const hotel = await Hotel.findById(
-    hotelObjectId
-  )
+  const hotel = await Hotel.findById(hotelObjectId)
     .select("_id name city photos")
     .lean();
 
   if (!hotel) {
-    throw AppError.NotFoundError(
-      "Hotel not found"
-    );
+    throw AppError.NotFoundError("Hotel not found");
   }
-
 
   /* ---------------------------------------------------------------------- */
   /* Fetch rooms                                                            */
@@ -219,9 +206,7 @@ export const getHotelAnalyticsService = async (hotelId, from, to) => {
   const rooms = await Room.find({
     hotelId: hotelObjectId,
   })
-    .select(
-      "_id type basePrice photos totalCount"
-    )
+    .select("_id type basePrice photos totalCount")
     .lean();
 
   console.log("rooms found:", rooms.length);
@@ -315,21 +300,38 @@ export const getHotelAnalyticsService = async (hotelId, from, to) => {
    *
    * Change checkIn/checkOut field names below if your Booking schema
    * uses different names.
+   *
    */
+  /* ---------------------------------------------------------------------- */
+  /* Booking count                                                          */
+  /* ---------------------------------------------------------------------- */
 
-  const totalBookings = await Booking.countDocuments({
-    hotelId: hotelObjectId,
+  const bookingQuery = {
+    hotel: hotelObjectId,
 
     status: "CONFIRMED",
 
-    checkIn: {
+    /*
+     * Booking overlaps the selected analytics period when:
+     *
+     * booking starts before the report ends
+     * AND
+     * booking ends after the report starts
+     */
+    fromDate: {
       $lt: toDate,
     },
 
-    checkOut: {
+    toDate: {
       $gt: fromDate,
     },
-  });
+  };
+
+  console.log("BOOKING QUERY:", bookingQuery);
+
+  const totalBookings = await Booking.countDocuments(bookingQuery);
+
+  console.log("TOTAL BOOKINGS:", totalBookings);
 
   /* ---------------------------------------------------------------------- */
   /* Room lookup                                                            */

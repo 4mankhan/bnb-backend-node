@@ -4,6 +4,18 @@ import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../errors/AppError.js";
 import isValidObjectId from "../utils/isValidObjectId.js";
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const isValidDateString = (value) => {
+  if (!DATE_REGEX.test(value)) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return !Number.isNaN(date.getTime());
+};
+
 const createHotel = asyncHandler(async (req, res) => {
   const userId = req.user?.id;
 
@@ -206,18 +218,31 @@ const deleteRoom = asyncHandler(async (req, res) => {
 });
 
 export const getHotelAnalyticsController = asyncHandler(async (req, res) => {
-  console.log("running analytics")
   const { hotelId } = req.params;
+  const { from, to } = req.query;
+
+  console.log("running analytics", {
+    hotelId,
+    from,
+    to,
+  });
 
   if (!isValidObjectId(hotelId)) {
     throw AppError.ValidationError("Invalid hotel id");
   }
 
-  const analytics = await ownerService.getHotelAnalyticsService(hotelId);
+  if (!from || !to) {
+    throw AppError.ValidationError("from and to dates are required");
+  }
+
+  const analytics = await ownerService.getHotelAnalyticsService(
+    hotelId,
+    from,
+    to,
+  );
 
   res.json({
     success: true,
-
     analytics,
   });
 });
@@ -233,5 +258,5 @@ export default {
   getRoomsByHotel,
   updateRoom,
   deleteRoom,
-  getHotelAnalyticsController
+  getHotelAnalyticsController,
 };

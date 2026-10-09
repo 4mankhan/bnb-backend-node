@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Booking from "../db/models/booking.js";
 import Payment from "../db/models/payment.js";
 import Inventory from "../db/models/inventory.js";
+import Room from "../db/models/rooms.js";
 import { getDateRange } from "../utils/getDateRange.js";
 import { valKey as redis } from "../config/redis.js";
 import crypto from "crypto";
@@ -40,7 +41,7 @@ export const createPaymentOrderService = async ({ userId, bookingId }) => {
 
   // Always create a fresh Razorpay order
   const order = await razorpay.orders.create({
-    amount: booking.totalPrice * 100,
+    amount: booking.totalPrice,
     currency: "INR",
     receipt: `booking_${booking._id}`,
     notes: {
@@ -123,10 +124,20 @@ export const verifyPaymentService = async ({
         razorpayOrderId: razorpay_order_id,
       }).session(session);
 
+     if (!payment) {
+  const paymentsForBooking = await Payment.find({ bookingId })
+    .select("_id bookingId razorpayOrderId paymentStatus")
+    .session(session)
+    .lean();
 
-      if (!payment) {
-        throw new Error("Payment record not found");
-      }
+  console.error("Payment verification mismatch", {
+    bookingId: String(bookingId),
+    receivedOrderId: razorpay_order_id,
+    paymentsForBooking,
+  });
+
+  throw new Error("Payment record not found");
+}
 
       if (payment.paymentStatus === "SUCCESS") {
         return {
@@ -163,16 +174,23 @@ export const verifyPaymentService = async ({
       // Update inventory
 
       const dates = getDateRange(booking.fromDate, booking.toDate);
+      const room = await Room.findById(booking.room).session(session);
 
+      if (!room) {
+        throw new Error("Room not found");
+      }
       const roomId = booking.room.toString();
 
       for (const date of dates) {
+        console.log("for date", date);
         const updated = await Inventory.findOneAndUpdate(
           {
-            roomId: booking.room,
+            roomId,
             date,
+            closed: false,
+
             $expr: {
-              $lt: ["$bookedCount", "$totalCount"],
+              $lt: ["$bookedCount", room.totalCount],
             },
           },
           {
@@ -182,7 +200,7 @@ export const verifyPaymentService = async ({
           },
           {
             session,
-            returnDocument: "after",
+            new: true,
           },
         );
 

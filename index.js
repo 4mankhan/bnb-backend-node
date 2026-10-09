@@ -5,6 +5,7 @@ import errorHandler from "./src/middleware/errorHandler.js";
 import apiRoutes from "./src/routes/index.routes.js";
 import { valKey as redis } from "./src/config/redis.js";
 import AppError from "./src/errors/AppError.js";
+import cookieParser from "cookie-parser";
 
 import "./src/utils/booking.cron.js";
 
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 // HEALTH CHECK ROUTES
 

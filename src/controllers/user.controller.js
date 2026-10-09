@@ -48,7 +48,8 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const refresh = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken;
+  //console.log("reff",refreshToken)
 
   if (!refreshToken) {
     throw AppError.ValidationError("Refresh token is required");

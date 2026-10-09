@@ -7,7 +7,7 @@ const router = express.Router();
 // Auth routes
 router.post("/signup", userController.signup);
 router.post("/login", userController.login);
-router.post("/refresh", userController.refresh);
+router.post("/refresh-token", userController.refresh);
 router.post("/logout", userController.logout);
 
 router.get("/profile", authMiddleware, userController.getUserById);

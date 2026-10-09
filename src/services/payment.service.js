@@ -176,7 +176,7 @@ export const verifyPaymentService = async ({
       const roomId = booking.room.toString();
 
       for (const date of dates) {
-        console.log("for date", date);
+        //console.log("for date", date);
         const updated = await Inventory.findOneAndUpdate(
           {
             roomId,

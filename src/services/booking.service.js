@@ -44,6 +44,8 @@ export const createBookingService = async ({
       const existingBooking = await Booking.findOne({
         user: userId,
         room: roomId,
+        fromDate,
+        toDate,
         status: "PENDING",
         expiresAt: {
           $gt: new Date(),

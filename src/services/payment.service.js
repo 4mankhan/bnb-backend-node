@@ -29,17 +29,27 @@ export const createPaymentOrderService = async ({ userId, bookingId }) => {
   if (booking.expiresAt < new Date()) {
     booking.status = "EXPIRED";
     await booking.save();
-
     throw AppError.ForbiddenError("Booking expired");
   }
 
-  // Reuse existing pending payment if present
   let payment = await Payment.findOne({
     bookingId: booking._id,
     paymentStatus: "INITIATED",
   });
 
-  // Always create a fresh Razorpay order
+  // Reuse the existing order if one has already been created.
+  if (payment?.razorpayOrderId) {
+    return {
+      bookingId: booking._id,
+      paymentId: payment._id,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      orderId: payment.razorpayOrderId,
+      amount: payment.amount,
+      currency: payment.currency,
+    };
+  }
+
+  // Create a new order only when no reusable order exists.
   const order = await razorpay.orders.create({
     amount: booking.totalPrice,
     currency: "INR",
@@ -65,20 +75,15 @@ export const createPaymentOrderService = async ({ userId, bookingId }) => {
     payment.razorpayOrderId = order.id;
     payment.amount = booking.totalPrice;
     payment.currency = "INR";
-
     await payment.save();
   }
 
   return {
     bookingId: booking._id,
     paymentId: payment._id,
-
     keyId: process.env.RAZORPAY_KEY_ID,
-
     orderId: order.id,
-
     amount: order.amount,
-
     currency: order.currency,
   };
 };
@@ -124,20 +129,9 @@ export const verifyPaymentService = async ({
         razorpayOrderId: razorpay_order_id,
       }).session(session);
 
-     if (!payment) {
-  const paymentsForBooking = await Payment.find({ bookingId })
-    .select("_id bookingId razorpayOrderId paymentStatus")
-    .session(session)
-    .lean();
-
-  console.error("Payment verification mismatch", {
-    bookingId: String(bookingId),
-    receivedOrderId: razorpay_order_id,
-    paymentsForBooking,
-  });
-
-  throw new Error("Payment record not found");
-}
+      if (!payment) {
+        throw new Error("Payment record not found");
+      }
 
       if (payment.paymentStatus === "SUCCESS") {
         return {

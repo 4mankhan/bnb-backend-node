@@ -49,9 +49,10 @@ export const createPaymentOrderService = async ({ userId, bookingId }) => {
     };
   }
 
+  const amountInPaise = Number(booking.totalPrice) * 100;
   // Create a new order only when no reusable order exists.
   const order = await razorpay.orders.create({
-    amount: booking.totalPrice,
+    amount: amountInPaise,
     currency: "INR",
     receipt: `booking_${booking._id}`,
     notes: {

@@ -67,14 +67,14 @@ export const createPaymentOrderService = async ({ userId, bookingId }) => {
       user: userId,
       hotel: booking.hotel,
       room: booking.room,
-      amount: booking.totalPrice,
+      amount: amountInPaise,
       currency: "INR",
       paymentStatus: "INITIATED",
       razorpayOrderId: order.id,
     });
   } else {
     payment.razorpayOrderId = order.id;
-    payment.amount = booking.totalPrice;
+    payment.amount = amountInPaise;
     payment.currency = "INR";
     await payment.save();
   }
